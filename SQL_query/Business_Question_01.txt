@@ -1,0 +1,52 @@
+Q1 How many products people usually order?
+
+Select Amount as number_of_products_per_order, 
+       count(*) as distribution_amount
+
+From 
+
+(
+SELECT 
+       o.order_id, 
+       MAX(add_to_cart_order) as Amount
+
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_orders" o
+On op.order_id = o.order_id
+Group by o.order_id
+)
+
+group by Amount
+Order by distribution_amount desc
+
+Q2 Which products are ordered the most?
+
+Select op.product_id,
+       product_name, 
+       count(*) as Amount
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_products" p
+On cast(op.product_id as varchar) = p.product_id
+Group by op.product_id, product_name
+Order by Amount desc
+
+Q3 Which product is most likely to be added first in cart?
+
+Select op.product_id,
+       product_name, 
+       count(*) as Amount
+       
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_products" p
+On cast(op.product_id as varchar) = p.product_id
+Where add_to_cart_order = 1
+Group by op.product_id, product_name
+Order by Amount desc
+
+Q4 What is the time at which people usually order products?
+
+Select order_hour_of_day,
+       count(*) as Amount
+FROM "customeranalytics"."data_orders" o
+Group by order_hour_of_day
+Order by Amount desc
