@@ -1,0 +1,77 @@
+1. Plot the distribution of the number of orders made by each costumer in the whole dataset.
+
+Select Number_of_Order,
+       Count(*) as Distribution
+
+From
+(
+SELECT  user_id,
+        Count(order_id) as Number_of_Order
+        
+FROM "customeranalytics"."data_orders"
+Group By user_id
+)
+
+Group By Number_of_Order
+Order By Distribution desc
+
+2. What are customers' favorite departments and Aisles
+///Aisles///
+
+SELECT p.aisle_id,
+       a.aisle,
+       count(*) as total_number
+
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_products" p
+On cast(op.product_id as varchar) = p.product_id
+
+Left Join "customeranalytics"."data_departments" d
+On cast(d.department_id as varchar) = p.department_id
+
+Left Join "customeranalytics"."data_aisle" a
+On cast(a.aisle_id as varchar) = p.aisle_id
+
+Group by p.aisle_id, a.aisle
+Order by total_number desc
+
+///Departments
+
+SELECT p.department_id,
+       d.department,
+       count(*) as total_number
+
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_products" p
+On cast(op.product_id as varchar) = p.product_id
+
+Left Join "customeranalytics"."data_departments" d
+On cast(d.department_id as varchar) = p.department_id
+
+Left Join "customeranalytics"."data_aisle" a
+On cast(a.aisle_id as varchar) = p.aisle_id
+
+Group by p.department_id, d.department
+Order by total_number desc
+
+3. What is the best selling Aisles in each department based on number of orders?
+
+Select *
+From 
+(
+SELECT p.department_id,
+       d.department,
+       a.aisle,
+       Count(*) as total_number,
+       ROW_Number() over(Partition by d.department Order by Count(*) Desc) as a
+FROM "customeranalytics"."data_order_product" op
+Left Join "customeranalytics"."data_products" p
+On cast(op.product_id as varchar) = p.product_id
+Left Join "customeranalytics"."data_departments" d
+On cast(d.department_id as varchar) = p.department_id
+Left Join "customeranalytics"."data_aisle" a
+On cast(a.aisle_id as varchar) = p.aisle_id 
+Group by p.department_id, d.department, a.aisle
+)
+Where a <= 1
+Order by total_number desc
